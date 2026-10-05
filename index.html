@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Training | جدولك التدريبي المخصص</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; }
+        body { background-color: #121212; color: #fff; line-height: 1.6; }
+        header { background: #1f1f1f; padding: 20px; text-align: center; border-bottom: 3px solid #00e676; }
+        header h1 { color: #00e676; font-size: 28px; }
+        .hero { text-align: center; padding: 30px 20px; background: #181818; border-bottom: 1px solid #333; }
+        .hero h2 { font-size: 26px; margin-bottom: 8px; color: #fff; }
+        .hero p { color: #aaa; font-size: 14px; }
+        
+        /* عداد الراحة العائم */
+        #timer-container { position: fixed; top: 15px; left: 15px; background: #1e1e1e; border: 2px solid #00e676; padding: 10px 15px; border-radius: 8px; z-index: 1000; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #timer-display { font-size: 20px; font-weight: bold; color: #00e676; margin-bottom: 5px; }
+        .timer-btn { background: #00e676; color: #000; border: none; padding: 5px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .timer-btn:hover { background: #00c853; }
+
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .section-title { text-align: center; margin-bottom: 25px; color: #00e676; font-size: 24px; }
+        
+        .schedule-grid { display: flex; flex-direction: column; gap: 20px; }
+        .day-card { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; transition: 0.3s; }
+        .day-card:hover { border-color: #00e676; }
+        .day-card h3 { color: #00e676; margin-bottom: 15px; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .exercise-list { list-style: none; }
+        .exercise-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 8px; background: #161616; border-radius: 6px; border-right: 3px solid #00e676; gap: 10px; }
+        
+        /* تأثير إنجاز التمرين (Checklist) */
+        .exercise-item.completed { opacity: 0.5; border-right-color: #666; background: #111; }
+        .exercise-item.completed .exercise-name { text-decoration: line-through; color: #888; }
+
+        .exercise-left { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+        .exercise-name { font-size: 15px; color: #fff; font-weight: bold; }
+        
+        /* خانة إدخال الوزن المحفوظ محلياً */
+        .weight-input { width: 75px; padding: 6px; background: #222; border: 1px solid #444; color: #00e676; text-align: center; border-radius: 4px; font-weight: bold; font-size: 14px; outline: none; }
+        .weight-input::placeholder { color: #666; font-size: 11px; }
+
+        /* منطقة الملاحظات اليومية */
+        .notes-area { width: 100%; margin-top: 15px; padding: 10px; background: #161616; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 13px; resize: vertical; height: 60px; outline: none; }
+        .notes-area::placeholder { color: #777; }
+
+        .rest-day { background: #1a1a1a; border: 1px dashed #444; text-align: center; padding: 25px; border-radius: 8px; color: #888; font-size: 18px; font-weight: bold; }
+
+        footer { text-align: center; padding: 20px; background: #1a1a1a; margin-top: 40px; color: #777; border-top: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+    <!-- عداد الراحة العائم -->
+    <div id="timer-container">
+        <div id="timer-display">00:60</div>
+        <button class="timer-btn" onclick="startTimer(60)">بدء راحة (60ث)</button>
+    </div>
+
+    <header>
+        <h1>💪 Private Training | جدول التمارين المطور</h1>
+    </header>
+
+    <div class="hero">
+        <h2>أداتك الذكية بالصالة</h2>
+        <p>اضغط على التمرين لشطبه عند الانتهاء، وسجل أوزانك لترقب تطورك أسبوعياً!</p>
+    </div>
+
+    <div class="container">
+        <h2 class="section-title">جدول التمارين اليومي</h2>
+        
+        <div class="schedule-grid">
+            
+            <!-- السبت والأربعاء -->
+            <div class="day-card">
+                <h3>السبت / الأربعاء: صدر، كتف، تراي، معدة <span>[اليوم الأول]</span></h3>
+                <ul class="exercise-list">
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">1. بنش برس (صدر مستوي)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">2. صدر علوي (جهاز)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">3. فراشة</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">4. ديبس حر (Dips)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">5. رفرفة جانبي كتف (جهاز مرتفع)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">6. كتف أمامي (إيد واسعة)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">7. تراي سحب مسطرة (كيبل)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">8. تراي سحب من الخلف</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">9. معدة (منسدح بالجهاز)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                </ul>
+                <textarea class="notes-area" placeholder="ملاحظاتك لهذا اليوم (مثلاً: زدت وزن البنش برس اليوم، إلخ)..."></textarea>
+            </div>
+
+            <!-- الأحد والخميس -->
+            <div class="day-card">
+                <h3>الأحد / الخميس: ظهر، باي، ترابيس، سواعد <span>[اليوم الثاني]</span></h3>
+                <ul class="exercise-list">
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">1. ظهر سحب علوي</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">2. ظهر سحب مستوي</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">3. تمرين المقص</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">4. تي بار (T-Bar)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">5. أسفل الظهر (قطنية)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">6. كتف خلفي</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">7. بايسبس (كوعي خلف جسمي)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">8. بايسبس مسطرة كيبل</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">9. بريكيالس (بالدنابل)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">10. مثلثات / ترابيس (سمث)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">11. سواعد (بالجهاز)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                </ul>
+                <textarea class="notes-area" placeholder="ملاحظاتك ليوم الظهر والباي..."></textarea>
+            </div>
+
+            <!-- الإثنين -->
+            <div class="day-card">
+                <h3>الإثنين: أرجل، بطات، قلوتس <span>[اليوم الثالث]</span></h3>
+                <ul class="exercise-list">
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">1. رفرفة أمامي (أرجل جهاز)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">2. رفرفة خلفي (أرجل جهاز)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">3. بطات (سمانة)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">4. أرجل داخلية (ضامة)</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                    <li class="exercise-item" onclick="toggleComplete(this)">
+                        <div class="exercise-left"><span class="exercise-name">5. قلوتس</span></div>
+                        <input type="text" class="weight-input" placeholder="الوزن" onclick="event.stopPropagation()" oninput="saveWeight(this)">
+                    </li>
+                </ul>
+                <textarea class="notes-area" placeholder="ملاحظاتك ليوم الأرجل..."></textarea>
+            </div>
+
+            <!-- الثلاثاء -->
+            <div class="day-card rest-day">
+                <h3>الثلاثاء: يوم راحة 🛌</h3>
+                <p>استشفاء عضلي وإعادة طاقة.</p>
+            </div>
+
+            <!-- الجمعة -->
+            <div class="day-card rest-day">
+                <h3>الجمعة: يوم راحة 🛌</h3>
+                <p>استرخاء واستعداد لأسبوع جديد.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>جميع حقوق النشر محفوظة © Private Training 2026</p>
+    </footer>
+
+<script>
+    // برمجة عداد الراحة التنازلي
+    let countdown;
+    function startTimer(seconds) {
+        clearInterval(countdown);
+        let timeLeft = seconds;
+        let display = document.getElementById('timer-display');
+        
+        countdown = setInterval(() => {
+            let mins = Math.floor(timeLeft / 60);
+            let secs = timeLeft % 60;
+            display.innerText = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                display.innerText = "انتهى الوقت!";
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    // شطب التمرين عند إنجازه
+    function toggleComplete(item) {
+        item.classList.toggle('completed');
+    }
+
+    // حفظ الأوزان تلقائياً في المتصفح (Local Storage)
+    function saveWeight(input) {
+        let exerciseName = input.previousElementSibling.innerText;
+        localStorage.setItem(exerciseName, input.value);
+    }
+
+    // استرجاع الأوزان المحفوظة عند فتح الصفحة
+    window.onload = function() {
+        let inputs = document.querySelectorAll('.weight-input');
+        inputs.forEach(input => {
+            let exerciseName = input.previousElementSibling.innerText;
+            if (localStorage.getItem(exerciseName)) {
+                input.value = localStorage.getItem(exerciseName);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
